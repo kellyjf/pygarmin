@@ -1,10 +1,18 @@
+#! /usr/bin/python
+#
 import xmltodict
 import re
 import datetime
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("input_file", help="GPX file to smooth")
+parser.add_argument("-w","--window",  type=int, default=7, help="Size of smoothing window")
+
+args=parser.parse_args()
 
 #f=open("activity_866550078.gpx","r")
-f=open("chv-mcc.gpx","r")
+f=open(args.input_file,"r")
 b=xmltodict.parse(f)
 f.close()
 
@@ -16,7 +24,7 @@ for pt in points:
 	epoch=datetime.datetime.strptime(re.sub(".\d+Z","",pt['time']),"%Y-%m-%dT%H:%M:%S").strftime("%s")
 	pt['epoch']=int(epoch)-e0
 	
-window=7
+window=args.window
 mid=int(window-1)/2
 
 numpts=len(points)
