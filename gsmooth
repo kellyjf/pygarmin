@@ -26,11 +26,21 @@ for pt in points:
 	
 window=args.window
 mid=int(window-1)/2
-
 numpts=len(points)
-for ndx in range(0,numpts-window):
-	xpt=[int(x['epoch']) for x in points[ndx:ndx+window]]
+
+# Median filter to reject outliers
+for ndx in range(0,numpts-window+1):
 	ypt=[float(x['ele']) for x in points[ndx:ndx+window]]
+	ypt.sort()
+	points[ndx+mid]['elem']=ypt[mid]
+for ndx in range(0,mid)+range(numpts-mid,numpts):
+	points[ndx]['elem']=points[ndx]['ele']
+
+# Piecewise linear fit
+for ndx in range(0,numpts-window+1):
+	xpt=[int(x['epoch']) for x in points[ndx:ndx+window]]
+	rpt=[float(x['ele']) for x in points[ndx:ndx+window]]
+	ypt=[float(x['elem']) for x in points[ndx:ndx+window]]
 	x=x2=y=xy=0.0
 	for i in range(window):
 		x += xpt[i]	
@@ -43,10 +53,17 @@ for ndx in range(0,numpts-window):
 	slope=(window*xy-x*y)/det
 	fit = slope*xpt[mid]+inter
 	
-	print xpt[mid],ypt[mid],fit
+	print xpt[mid],rpt[mid],ypt[mid],fit
 	points[ndx+mid]['fit']=fit  
 
+for pt in points:
+	del pt['epoch']
+	del pt['elem']
+	if 'fit' in pt:
+		pt['ele']=pt['fit']
+		del pt['fit']
+
 ofile=open("test.gpx","w")
-ofile.write(xmltodict.unparse(b) )
+ofile.write(xmltodict.unparse(b,pretty=True,indent='  ') )
 ofile.close()
 
